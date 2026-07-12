@@ -1,0 +1,55 @@
+﻿# Python virtual environments
+.venv/
+venv/
+
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Testing and quality tools
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+coverage.xml
+htmlcov/
+
+# Environment variables and secrets
+.env
+**/.env
+
+# IDE files
+.vscode/
+.idea/
+
+# Operating-system files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Python build output
+build/
+dist/
+*.egg-info/
+
+# Node and Next.js
+node_modules/
+.next/
+out/
+
+# Generated telemetry
+data/telemetry/logs/*
+!data/telemetry/logs/.gitkeep
+
+data/telemetry/metrics/*
+!data/telemetry/metrics/.gitkeep
+
+data/telemetry/traces/*
+!data/telemetry/traces/.gitkeep
+
+# Temporary files
+tmp/
+temp/
