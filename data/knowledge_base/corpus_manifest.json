@@ -1,0 +1,100 @@
+{
+  "corpus_name": "safeops-initial-knowledge-base",
+  "corpus_version": "0.1.0",
+  "created_date": "2026-07-13",
+  "description": "Initial operational knowledge corpus for SafeOps AI.",
+  "documents": [
+    {
+      "document_id": "ARCH-001",
+      "path": "architecture/system-overview.md",
+      "title": "OpenTelemetry Demo System Overview",
+      "document_type": "architecture",
+      "service": "platform",
+      "tags": [
+        "architecture",
+        "microservices",
+        "observability",
+        "telemetry"
+      ]
+    },
+    {
+      "document_id": "ARCH-002",
+      "path": "architecture/service-dependencies.md",
+      "title": "Core Service Dependency Map",
+      "document_type": "architecture",
+      "service": "platform",
+      "tags": [
+        "dependencies",
+        "service-map",
+        "root-cause-analysis",
+        "traces"
+      ]
+    },
+    {
+      "document_id": "SVC-001",
+      "path": "services/recommendation-service.md",
+      "title": "Recommendation Service Operational Guide",
+      "document_type": "service",
+      "service": "recommendation",
+      "tags": [
+        "recommendation",
+        "product-catalog",
+        "memory",
+        "latency"
+      ]
+    },
+    {
+      "document_id": "SVC-002",
+      "path": "services/checkout-service.md",
+      "title": "Checkout Service Operational Guide",
+      "document_type": "service",
+      "service": "checkout",
+      "tags": [
+        "checkout",
+        "payment",
+        "cart",
+        "shipping",
+        "latency"
+      ]
+    },
+    {
+      "document_id": "RB-001",
+      "path": "runbooks/high-service-latency.md",
+      "title": "High Service Latency Runbook",
+      "document_type": "runbook",
+      "service": "any",
+      "tags": [
+        "latency",
+        "traces",
+        "metrics",
+        "dependency"
+      ]
+    },
+    {
+      "document_id": "RB-002",
+      "path": "runbooks/memory-exhaustion.md",
+      "title": "Memory Exhaustion and Continuous Memory Growth Runbook",
+      "document_type": "runbook",
+      "service": "any",
+      "tags": [
+        "memory",
+        "memory-leak",
+        "garbage-collection",
+        "resource-exhaustion"
+      ]
+    },
+    {
+      "document_id": "POL-001",
+      "path": "policies/safe-tool-policy.md",
+      "title": "SafeOps Tool Safety and Human Approval Policy",
+      "document_type": "policy",
+      "service": "platform",
+      "tags": [
+        "guardrails",
+        "tool-safety",
+        "approval",
+        "prompt-injection"
+      ]
+    }
+  ]
+}
