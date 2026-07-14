@@ -11,7 +11,14 @@ requires-python = ">=3.11"
 dependencies = [
     "fastapi",
     "uvicorn[standard]",
-    "pydantic-settings"
+    "pydantic-settings",
+    "langchain-core>=1.4.9",
+    "langchain-text-splitters>=1.1.2",
+    "langchain-huggingface>=1.2.2",
+    "langchain-qdrant>=1.1.0",
+    "sentence-transformers>=5.6.0",
+    "qdrant-client>=1.18.0",
+    "pyyaml>=6.0.3",
 ]
 
 [project.optional-dependencies]
