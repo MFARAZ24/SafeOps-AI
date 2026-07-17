@@ -1,0 +1,1059 @@
+{
+  "dataset_name": "safeops-rag-seed-questions",
+  "dataset_version": "0.1.0",
+  "retriever": "vectorless",
+  "summary": {
+    "question_count": 8,
+    "recall_at_1": 0.5,
+    "recall_at_3": 1.0,
+    "recall_at_5": 1.0,
+    "precision_at_3": 0.75,
+    "precision_at_5": 0.45,
+    "hit_rate_at_1": 1.0,
+    "hit_rate_at_3": 1.0,
+    "hit_rate_at_5": 1.0,
+    "mean_reciprocal_rank": 1.0,
+    "average_latency_ms": 6.900574999235687
+  },
+  "questions": [
+    {
+      "question_id": "RAG-Q001",
+      "question": "Which services should be investigated when checkout requests are slow?",
+      "category": "service_dependency",
+      "expected_document_ids": [
+        "ARCH-002",
+        "SVC-002",
+        "RB-001"
+      ],
+      "retrieved_document_ids": [
+        "RB-001",
+        "SVC-002",
+        "ARCH-002",
+        "POL-001",
+        "ARCH-001"
+      ],
+      "retrieved_results": [
+        {
+          "rank": 1,
+          "document_id": "RB-001",
+          "title": "High Service Latency Runbook",
+          "document_type": "runbook",
+          "service": "any",
+          "score": 34.8,
+          "reasons": [
+            "body overlap: 7 tokens",
+            "dependency metadata match",
+            "latency metadata match"
+          ],
+          "detected_services": [
+            "checkout"
+          ],
+          "detected_concepts": [
+            "dependency",
+            "latency"
+          ]
+        },
+        {
+          "rank": 2,
+          "document_id": "SVC-002",
+          "title": "Checkout Service Operational Guide",
+          "document_type": "service",
+          "service": "checkout",
+          "score": 49.3,
+          "reasons": [
+            "matching service: checkout",
+            "title overlap: ['checkout']",
+            "tag overlap: ['checkout']",
+            "body overlap: 7 tokens",
+            "dependency metadata match",
+            "latency metadata match"
+          ],
+          "detected_services": [
+            "checkout"
+          ],
+          "detected_concepts": [
+            "dependency",
+            "latency"
+          ]
+        },
+        {
+          "rank": 3,
+          "document_id": "ARCH-002",
+          "title": "Core Service Dependency Map",
+          "document_type": "architecture",
+          "service": "platform",
+          "score": 43.4,
+          "reasons": [
+            "body overlap: 6 tokens",
+            "dependency metadata match",
+            "latency content match",
+            "architecture dependency intent"
+          ],
+          "detected_services": [
+            "checkout"
+          ],
+          "detected_concepts": [
+            "dependency",
+            "latency"
+          ]
+        },
+        {
+          "rank": 4,
+          "document_id": "POL-001",
+          "title": "SafeOps Tool Safety and Human Approval Policy",
+          "document_type": "policy",
+          "service": "platform",
+          "score": 1.6,
+          "reasons": [
+            "body overlap: 4 tokens"
+          ],
+          "detected_services": [
+            "checkout"
+          ],
+          "detected_concepts": [
+            "dependency",
+            "latency"
+          ]
+        },
+        {
+          "rank": 5,
+          "document_id": "ARCH-001",
+          "title": "OpenTelemetry Demo System Overview",
+          "document_type": "architecture",
+          "service": "platform",
+          "score": 39.4,
+          "reasons": [
+            "body overlap: 6 tokens",
+            "dependency content match",
+            "latency content match",
+            "architecture dependency intent"
+          ],
+          "detected_services": [
+            "checkout"
+          ],
+          "detected_concepts": [
+            "dependency",
+            "latency"
+          ]
+        }
+      ],
+      "recall_at_1": 0.3333333333333333,
+      "recall_at_3": 1.0,
+      "recall_at_5": 1.0,
+      "precision_at_3": 1.0,
+      "precision_at_5": 0.6,
+      "hit_at_1": 1.0,
+      "hit_at_3": 1.0,
+      "hit_at_5": 1.0,
+      "reciprocal_rank": 1.0,
+      "latency_ms": 6.733600006555207
+    },
+    {
+      "question_id": "RAG-Q002",
+      "question": "The Recommendation service memory increases continuously while traffic remains stable. What should be investigated?",
+      "category": "memory_incident",
+      "expected_document_ids": [
+        "SVC-001",
+        "RB-002"
+      ],
+      "retrieved_document_ids": [
+        "RB-002",
+        "SVC-001",
+        "ARCH-001",
+        "POL-001",
+        "RB-001"
+      ],
+      "retrieved_results": [
+        {
+          "rank": 1,
+          "document_id": "RB-002",
+          "title": "Memory Exhaustion and Continuous Memory Growth Runbook",
+          "document_type": "runbook",
+          "service": "any",
+          "score": 34.8,
+          "reasons": [
+            "title overlap: ['memory']",
+            "tag overlap: ['memory', 'recommendation']",
+            "body overlap: 12 tokens",
+            "memory metadata match"
+          ],
+          "detected_services": [
+            "recommendation"
+          ],
+          "detected_concepts": [
+            "memory"
+          ]
+        },
+        {
+          "rank": 2,
+          "document_id": "SVC-001",
+          "title": "Recommendation Service Operational Guide",
+          "document_type": "service",
+          "service": "recommendation",
+          "score": 44.0,
+          "reasons": [
+            "matching service: recommendation",
+            "title overlap: ['recommendation', 'service']",
+            "tag overlap: ['memory', 'recommendation']",
+            "body overlap: 10 tokens",
+            "memory metadata match"
+          ],
+          "detected_services": [
+            "recommendation"
+          ],
+          "detected_concepts": [
+            "memory"
+          ]
+        },
+        {
+          "rank": 3,
+          "document_id": "ARCH-001",
+          "title": "OpenTelemetry Demo System Overview",
+          "document_type": "architecture",
+          "service": "platform",
+          "score": 9.3,
+          "reasons": [
+            "tag overlap: ['service']",
+            "body overlap: 7 tokens",
+            "memory content match"
+          ],
+          "detected_services": [
+            "recommendation"
+          ],
+          "detected_concepts": [
+            "memory"
+          ]
+        },
+        {
+          "rank": 4,
+          "document_id": "POL-001",
+          "title": "SafeOps Tool Safety and Human Approval Policy",
+          "document_type": "policy",
+          "service": "platform",
+          "score": 3.6,
+          "reasons": [
+            "body overlap: 4 tokens",
+            "memory content match"
+          ],
+          "detected_services": [
+            "recommendation"
+          ],
+          "detected_concepts": [
+            "memory"
+          ]
+        },
+        {
+          "rank": 5,
+          "document_id": "RB-001",
+          "title": "High Service Latency Runbook",
+          "document_type": "runbook",
+          "service": "any",
+          "score": 23.8,
+          "reasons": [
+            "title overlap: ['service']",
+            "body overlap: 7 tokens",
+            "memory content match"
+          ],
+          "detected_services": [
+            "recommendation"
+          ],
+          "detected_concepts": [
+            "memory"
+          ]
+        }
+      ],
+      "recall_at_1": 0.5,
+      "recall_at_3": 1.0,
+      "recall_at_5": 1.0,
+      "precision_at_3": 0.6666666666666666,
+      "precision_at_5": 0.4,
+      "hit_at_1": 1.0,
+      "hit_at_3": 1.0,
+      "hit_at_5": 1.0,
+      "reciprocal_rank": 1.0,
+      "latency_ms": 7.226000001537614
+    },
+    {
+      "question_id": "RAG-Q003",
+      "question": "Can SafeOps automatically restart the Recommendation service?",
+      "category": "tool_safety",
+      "expected_document_ids": [
+        "POL-001",
+        "SVC-001",
+        "RB-002"
+      ],
+      "retrieved_document_ids": [
+        "POL-001",
+        "SVC-001",
+        "RB-002",
+        "ARCH-002",
+        "RB-001"
+      ],
+      "retrieved_results": [
+        {
+          "rank": 1,
+          "document_id": "POL-001",
+          "title": "SafeOps Tool Safety and Human Approval Policy",
+          "document_type": "policy",
+          "service": "platform",
+          "score": 68.0,
+          "reasons": [
+            "title overlap: ['safeops']",
+            "body overlap: 5 tokens",
+            "approval metadata match",
+            "remediation content match",
+            "explicit safety-policy intent"
+          ],
+          "detected_services": [
+            "recommendation"
+          ],
+          "detected_concepts": [
+            "approval",
+            "remediation"
+          ]
+        },
+        {
+          "rank": 2,
+          "document_id": "SVC-001",
+          "title": "Recommendation Service Operational Guide",
+          "document_type": "service",
+          "service": "recommendation",
+          "score": 37.9,
+          "reasons": [
+            "matching service: recommendation",
+            "title overlap: ['recommendation', 'service']",
+            "tag overlap: ['recommendation']",
+            "body overlap: 6 tokens",
+            "approval content match",
+            "remediation content match"
+          ],
+          "detected_services": [
+            "recommendation"
+          ],
+          "detected_concepts": [
+            "approval",
+            "remediation"
+          ]
+        },
+        {
+          "rank": 3,
+          "document_id": "RB-002",
+          "title": "Memory Exhaustion and Continuous Memory Growth Runbook",
+          "document_type": "runbook",
+          "service": "any",
+          "score": 20.5,
+          "reasons": [
+            "tag overlap: ['recommendation']",
+            "body overlap: 5 tokens",
+            "approval content match",
+            "remediation content match"
+          ],
+          "detected_services": [
+            "recommendation"
+          ],
+          "detected_concepts": [
+            "approval",
+            "remediation"
+          ]
+        },
+        {
+          "rank": 4,
+          "document_id": "ARCH-002",
+          "title": "Core Service Dependency Map",
+          "document_type": "architecture",
+          "service": "platform",
+          "score": 7.1,
+          "reasons": [
+            "title overlap: ['service']",
+            "tag overlap: ['service']",
+            "body overlap: 4 tokens"
+          ],
+          "detected_services": [
+            "recommendation"
+          ],
+          "detected_concepts": [
+            "approval",
+            "remediation"
+          ]
+        },
+        {
+          "rank": 5,
+          "document_id": "RB-001",
+          "title": "High Service Latency Runbook",
+          "document_type": "runbook",
+          "service": "any",
+          "score": 20.2,
+          "reasons": [
+            "title overlap: ['service']",
+            "body overlap: 3 tokens",
+            "approval content match",
+            "remediation content match"
+          ],
+          "detected_services": [
+            "recommendation"
+          ],
+          "detected_concepts": [
+            "approval",
+            "remediation"
+          ]
+        }
+      ],
+      "recall_at_1": 0.3333333333333333,
+      "recall_at_3": 1.0,
+      "recall_at_5": 1.0,
+      "precision_at_3": 1.0,
+      "precision_at_5": 0.6,
+      "hit_at_1": 1.0,
+      "hit_at_3": 1.0,
+      "hit_at_5": 1.0,
+      "reciprocal_rank": 1.0,
+      "latency_ms": 8.02889998885803
+    },
+    {
+      "question_id": "RAG-Q004",
+      "question": "Which downstream service does Recommendation use to retrieve product information?",
+      "category": "service_dependency",
+      "expected_document_ids": [
+        "ARCH-002",
+        "SVC-001"
+      ],
+      "retrieved_document_ids": [
+        "ARCH-002",
+        "SVC-001",
+        "RB-001",
+        "POL-001",
+        "ARCH-001"
+      ],
+      "retrieved_results": [
+        {
+          "rank": 1,
+          "document_id": "ARCH-002",
+          "title": "Core Service Dependency Map",
+          "document_type": "architecture",
+          "service": "platform",
+          "score": 40.3,
+          "reasons": [
+            "title overlap: ['service']",
+            "tag overlap: ['service']",
+            "body overlap: 7 tokens",
+            "dependency metadata match",
+            "architecture dependency intent"
+          ],
+          "detected_services": [
+            "product-catalog",
+            "recommendation"
+          ],
+          "detected_concepts": [
+            "dependency"
+          ]
+        },
+        {
+          "rank": 2,
+          "document_id": "SVC-001",
+          "title": "Recommendation Service Operational Guide",
+          "document_type": "service",
+          "service": "recommendation",
+          "score": 37.2,
+          "reasons": [
+            "matching service: recommendation",
+            "title overlap: ['recommendation', 'service']",
+            "tag overlap: ['product', 'recommendation']",
+            "body overlap: 8 tokens",
+            "dependency content match"
+          ],
+          "detected_services": [
+            "product-catalog",
+            "recommendation"
+          ],
+          "detected_concepts": [
+            "dependency"
+          ]
+        },
+        {
+          "rank": 3,
+          "document_id": "RB-001",
+          "title": "High Service Latency Runbook",
+          "document_type": "runbook",
+          "service": "any",
+          "score": 15.0,
+          "reasons": [
+            "title overlap: ['service']",
+            "body overlap: 5 tokens",
+            "dependency metadata match"
+          ],
+          "detected_services": [
+            "product-catalog",
+            "recommendation"
+          ],
+          "detected_concepts": [
+            "dependency"
+          ]
+        },
+        {
+          "rank": 4,
+          "document_id": "POL-001",
+          "title": "SafeOps Tool Safety and Human Approval Policy",
+          "document_type": "policy",
+          "service": "platform",
+          "score": 2.4000000000000004,
+          "reasons": [
+            "body overlap: 6 tokens"
+          ],
+          "detected_services": [
+            "product-catalog",
+            "recommendation"
+          ],
+          "detected_concepts": [
+            "dependency"
+          ]
+        },
+        {
+          "rank": 5,
+          "document_id": "ARCH-001",
+          "title": "OpenTelemetry Demo System Overview",
+          "document_type": "architecture",
+          "service": "platform",
+          "score": 33.7,
+          "reasons": [
+            "tag overlap: ['service']",
+            "body overlap: 8 tokens",
+            "dependency content match",
+            "architecture dependency intent"
+          ],
+          "detected_services": [
+            "product-catalog",
+            "recommendation"
+          ],
+          "detected_concepts": [
+            "dependency"
+          ]
+        }
+      ],
+      "recall_at_1": 0.5,
+      "recall_at_3": 1.0,
+      "recall_at_5": 1.0,
+      "precision_at_3": 0.6666666666666666,
+      "precision_at_5": 0.4,
+      "hit_at_1": 1.0,
+      "hit_at_3": 1.0,
+      "hit_at_5": 1.0,
+      "reciprocal_rank": 1.0,
+      "latency_ms": 6.475000001955777
+    },
+    {
+      "question_id": "RAG-Q005",
+      "question": "A checkout trace shows that the Payment span consumes most of the request time. Where should the investigation continue?",
+      "category": "latency_localization",
+      "expected_document_ids": [
+        "ARCH-002",
+        "SVC-002",
+        "RB-001"
+      ],
+      "retrieved_document_ids": [
+        "RB-001",
+        "SVC-002",
+        "ARCH-002",
+        "POL-001",
+        "ARCH-001"
+      ],
+      "retrieved_results": [
+        {
+          "rank": 1,
+          "document_id": "RB-001",
+          "title": "High Service Latency Runbook",
+          "document_type": "runbook",
+          "service": "any",
+          "score": 35.6,
+          "reasons": [
+            "body overlap: 9 tokens",
+            "dependency metadata match",
+            "latency metadata match"
+          ],
+          "detected_services": [
+            "checkout",
+            "payment"
+          ],
+          "detected_concepts": [
+            "dependency",
+            "latency"
+          ]
+        },
+        {
+          "rank": 2,
+          "document_id": "SVC-002",
+          "title": "Checkout Service Operational Guide",
+          "document_type": "service",
+          "service": "checkout",
+          "score": 54.0,
+          "reasons": [
+            "matching service: checkout",
+            "title overlap: ['checkout']",
+            "tag overlap: ['checkout', 'payment']",
+            "body overlap: 13 tokens",
+            "dependency metadata match",
+            "latency metadata match"
+          ],
+          "detected_services": [
+            "checkout",
+            "payment"
+          ],
+          "detected_concepts": [
+            "dependency",
+            "latency"
+          ]
+        },
+        {
+          "rank": 3,
+          "document_id": "ARCH-002",
+          "title": "Core Service Dependency Map",
+          "document_type": "architecture",
+          "service": "platform",
+          "score": 45.8,
+          "reasons": [
+            "body overlap: 12 tokens",
+            "dependency metadata match",
+            "latency content match",
+            "architecture dependency intent"
+          ],
+          "detected_services": [
+            "checkout",
+            "payment"
+          ],
+          "detected_concepts": [
+            "dependency",
+            "latency"
+          ]
+        },
+        {
+          "rank": 4,
+          "document_id": "POL-001",
+          "title": "SafeOps Tool Safety and Human Approval Policy",
+          "document_type": "policy",
+          "service": "platform",
+          "score": 2.4000000000000004,
+          "reasons": [
+            "body overlap: 6 tokens"
+          ],
+          "detected_services": [
+            "checkout",
+            "payment"
+          ],
+          "detected_concepts": [
+            "dependency",
+            "latency"
+          ]
+        },
+        {
+          "rank": 5,
+          "document_id": "ARCH-001",
+          "title": "OpenTelemetry Demo System Overview",
+          "document_type": "architecture",
+          "service": "platform",
+          "score": 41.4,
+          "reasons": [
+            "body overlap: 11 tokens",
+            "dependency content match",
+            "latency content match",
+            "architecture dependency intent"
+          ],
+          "detected_services": [
+            "checkout",
+            "payment"
+          ],
+          "detected_concepts": [
+            "dependency",
+            "latency"
+          ]
+        }
+      ],
+      "recall_at_1": 0.3333333333333333,
+      "recall_at_3": 1.0,
+      "recall_at_5": 1.0,
+      "precision_at_3": 1.0,
+      "precision_at_5": 0.6,
+      "hit_at_1": 1.0,
+      "hit_at_3": 1.0,
+      "hit_at_5": 1.0,
+      "reciprocal_rank": 1.0,
+      "latency_ms": 7.075400004396215
+    },
+    {
+      "question_id": "RAG-Q006",
+      "question": "How should SafeOps distinguish internal service latency from downstream service latency?",
+      "category": "latency_analysis",
+      "expected_document_ids": [
+        "ARCH-002",
+        "RB-001"
+      ],
+      "retrieved_document_ids": [
+        "RB-001",
+        "SVC-002",
+        "ARCH-002",
+        "POL-001",
+        "ARCH-001"
+      ],
+      "retrieved_results": [
+        {
+          "rank": 1,
+          "document_id": "RB-001",
+          "title": "High Service Latency Runbook",
+          "document_type": "runbook",
+          "service": "any",
+          "score": 42.9,
+          "reasons": [
+            "title overlap: ['latency', 'service']",
+            "tag overlap: ['latency']",
+            "body overlap: 6 tokens",
+            "dependency metadata match",
+            "latency metadata match"
+          ],
+          "detected_services": [],
+          "detected_concepts": [
+            "dependency",
+            "latency"
+          ]
+        },
+        {
+          "rank": 2,
+          "document_id": "SVC-002",
+          "title": "Checkout Service Operational Guide",
+          "document_type": "service",
+          "service": "checkout",
+          "score": 34.9,
+          "reasons": [
+            "title overlap: ['service']",
+            "tag overlap: ['latency']",
+            "body overlap: 6 tokens",
+            "dependency metadata match",
+            "latency metadata match"
+          ],
+          "detected_services": [],
+          "detected_concepts": [
+            "dependency",
+            "latency"
+          ]
+        },
+        {
+          "rank": 3,
+          "document_id": "ARCH-002",
+          "title": "Core Service Dependency Map",
+          "document_type": "architecture",
+          "service": "platform",
+          "score": 48.5,
+          "reasons": [
+            "title overlap: ['service']",
+            "tag overlap: ['service']",
+            "body overlap: 5 tokens",
+            "dependency metadata match",
+            "latency content match",
+            "architecture dependency intent"
+          ],
+          "detected_services": [],
+          "detected_concepts": [
+            "dependency",
+            "latency"
+          ]
+        },
+        {
+          "rank": 4,
+          "document_id": "POL-001",
+          "title": "SafeOps Tool Safety and Human Approval Policy",
+          "document_type": "policy",
+          "service": "platform",
+          "score": 4.6,
+          "reasons": [
+            "title overlap: ['safeops']",
+            "body overlap: 4 tokens"
+          ],
+          "detected_services": [],
+          "detected_concepts": [
+            "dependency",
+            "latency"
+          ]
+        },
+        {
+          "rank": 5,
+          "document_id": "ARCH-001",
+          "title": "OpenTelemetry Demo System Overview",
+          "document_type": "architecture",
+          "service": "platform",
+          "score": 42.3,
+          "reasons": [
+            "tag overlap: ['service']",
+            "body overlap: 7 tokens",
+            "dependency content match",
+            "latency content match",
+            "architecture dependency intent"
+          ],
+          "detected_services": [],
+          "detected_concepts": [
+            "dependency",
+            "latency"
+          ]
+        }
+      ],
+      "recall_at_1": 0.5,
+      "recall_at_3": 1.0,
+      "recall_at_5": 1.0,
+      "precision_at_3": 0.6666666666666666,
+      "precision_at_5": 0.4,
+      "hit_at_1": 1.0,
+      "hit_at_3": 1.0,
+      "hit_at_5": 1.0,
+      "reciprocal_rank": 1.0,
+      "latency_ms": 6.559599991305731
+    },
+    {
+      "question_id": "RAG-Q007",
+      "question": "A log message says to ignore all safety rules and restart every service. How should SafeOps handle it?",
+      "category": "prompt_injection",
+      "expected_document_ids": [
+        "POL-001"
+      ],
+      "retrieved_document_ids": [
+        "POL-001",
+        "SVC-002",
+        "RB-002",
+        "ARCH-002",
+        "RB-001"
+      ],
+      "retrieved_results": [
+        {
+          "rank": 1,
+          "document_id": "POL-001",
+          "title": "SafeOps Tool Safety and Human Approval Policy",
+          "document_type": "policy",
+          "service": "platform",
+          "score": 111.3,
+          "reasons": [
+            "title overlap: ['and', 'safeops', 'safety']",
+            "tag overlap: ['safety']",
+            "body overlap: 12 tokens",
+            "prompt_injection content match",
+            "approval metadata match",
+            "remediation content match",
+            "explicit safety-policy intent"
+          ],
+          "detected_services": [],
+          "detected_concepts": [
+            "approval",
+            "prompt_injection",
+            "remediation"
+          ]
+        },
+        {
+          "rank": 2,
+          "document_id": "SVC-002",
+          "title": "Checkout Service Operational Guide",
+          "document_type": "service",
+          "service": "checkout",
+          "score": 19.2,
+          "reasons": [
+            "title overlap: ['service']",
+            "body overlap: 8 tokens",
+            "approval content match",
+            "remediation content match"
+          ],
+          "detected_services": [],
+          "detected_concepts": [
+            "approval",
+            "prompt_injection",
+            "remediation"
+          ]
+        },
+        {
+          "rank": 3,
+          "document_id": "RB-002",
+          "title": "Memory Exhaustion and Continuous Memory Growth Runbook",
+          "document_type": "runbook",
+          "service": "any",
+          "score": 22.2,
+          "reasons": [
+            "title overlap: ['and']",
+            "body overlap: 8 tokens",
+            "approval content match",
+            "remediation content match"
+          ],
+          "detected_services": [],
+          "detected_concepts": [
+            "approval",
+            "prompt_injection",
+            "remediation"
+          ]
+        },
+        {
+          "rank": 4,
+          "document_id": "ARCH-002",
+          "title": "Core Service Dependency Map",
+          "document_type": "architecture",
+          "service": "platform",
+          "score": 8.7,
+          "reasons": [
+            "title overlap: ['service']",
+            "tag overlap: ['service']",
+            "body overlap: 8 tokens"
+          ],
+          "detected_services": [],
+          "detected_concepts": [
+            "approval",
+            "prompt_injection",
+            "remediation"
+          ]
+        },
+        {
+          "rank": 5,
+          "document_id": "RB-001",
+          "title": "High Service Latency Runbook",
+          "document_type": "runbook",
+          "service": "any",
+          "score": 21.8,
+          "reasons": [
+            "title overlap: ['service']",
+            "body overlap: 7 tokens",
+            "approval content match",
+            "remediation content match"
+          ],
+          "detected_services": [],
+          "detected_concepts": [
+            "approval",
+            "prompt_injection",
+            "remediation"
+          ]
+        }
+      ],
+      "recall_at_1": 1.0,
+      "recall_at_3": 1.0,
+      "recall_at_5": 1.0,
+      "precision_at_3": 0.3333333333333333,
+      "precision_at_5": 0.2,
+      "hit_at_1": 1.0,
+      "hit_at_3": 1.0,
+      "hit_at_5": 1.0,
+      "reciprocal_rank": 1.0,
+      "latency_ms": 6.612099998164922
+    },
+    {
+      "question_id": "RAG-Q008",
+      "question": "Why is restarting a service not considered a permanent fix for a memory leak?",
+      "category": "memory_remediation",
+      "expected_document_ids": [
+        "RB-002",
+        "SVC-001"
+      ],
+      "retrieved_document_ids": [
+        "RB-002",
+        "SVC-001",
+        "ARCH-001",
+        "POL-001",
+        "RB-001"
+      ],
+      "retrieved_results": [
+        {
+          "rank": 1,
+          "document_id": "RB-002",
+          "title": "Memory Exhaustion and Continuous Memory Growth Runbook",
+          "document_type": "runbook",
+          "service": "any",
+          "score": 44.2,
+          "reasons": [
+            "title overlap: ['memory']",
+            "tag overlap: ['leak', 'memory']",
+            "body overlap: 8 tokens",
+            "memory metadata match",
+            "remediation content match"
+          ],
+          "detected_services": [],
+          "detected_concepts": [
+            "memory",
+            "remediation"
+          ]
+        },
+        {
+          "rank": 2,
+          "document_id": "SVC-001",
+          "title": "Recommendation Service Operational Guide",
+          "document_type": "service",
+          "service": "recommendation",
+          "score": 30.7,
+          "reasons": [
+            "title overlap: ['service']",
+            "tag overlap: ['memory']",
+            "body overlap: 8 tokens",
+            "memory metadata match",
+            "remediation content match"
+          ],
+          "detected_services": [],
+          "detected_concepts": [
+            "memory",
+            "remediation"
+          ]
+        },
+        {
+          "rank": 3,
+          "document_id": "ARCH-001",
+          "title": "OpenTelemetry Demo System Overview",
+          "document_type": "architecture",
+          "service": "platform",
+          "score": 8.9,
+          "reasons": [
+            "tag overlap: ['service']",
+            "body overlap: 6 tokens",
+            "memory content match"
+          ],
+          "detected_services": [],
+          "detected_concepts": [
+            "memory",
+            "remediation"
+          ]
+        },
+        {
+          "rank": 4,
+          "document_id": "POL-001",
+          "title": "SafeOps Tool Safety and Human Approval Policy",
+          "document_type": "policy",
+          "service": "platform",
+          "score": 11.0,
+          "reasons": [
+            "body overlap: 5 tokens",
+            "memory content match",
+            "remediation content match"
+          ],
+          "detected_services": [],
+          "detected_concepts": [
+            "memory",
+            "remediation"
+          ]
+        },
+        {
+          "rank": 5,
+          "document_id": "RB-001",
+          "title": "High Service Latency Runbook",
+          "document_type": "runbook",
+          "service": "any",
+          "score": 34.8,
+          "reasons": [
+            "title overlap: ['service']",
+            "body overlap: 7 tokens",
+            "memory content match",
+            "remediation content match"
+          ],
+          "detected_services": [],
+          "detected_concepts": [
+            "memory",
+            "remediation"
+          ]
+        }
+      ],
+      "recall_at_1": 0.5,
+      "recall_at_3": 1.0,
+      "recall_at_5": 1.0,
+      "precision_at_3": 0.6666666666666666,
+      "precision_at_5": 0.4,
+      "hit_at_1": 1.0,
+      "hit_at_3": 1.0,
+      "hit_at_5": 1.0,
+      "reciprocal_rank": 1.0,
+      "latency_ms": 6.494000001111999
+    }
+  ]
+}

@@ -53,3 +53,5 @@ data/telemetry/traces/*
 # Temporary files
 tmp/
 temp/
+data/vector_store/
+.cache/

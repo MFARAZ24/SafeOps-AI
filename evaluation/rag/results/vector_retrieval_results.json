@@ -1,0 +1,539 @@
+{
+  "dataset_name": "safeops-rag-seed-questions",
+  "dataset_version": "0.1.0",
+  "retriever": "vector",
+  "summary": {
+    "question_count": 8,
+    "recall_at_1": 0.5,
+    "recall_at_3": 0.8125,
+    "recall_at_5": 1.0,
+    "precision_at_3": 0.5833333333333333,
+    "precision_at_5": 0.45,
+    "hit_rate_at_1": 1.0,
+    "hit_rate_at_3": 1.0,
+    "hit_rate_at_5": 1.0,
+    "mean_reciprocal_rank": 1.0,
+    "average_latency_ms": 39.81556250073481
+  },
+  "questions": [
+    {
+      "question_id": "RAG-Q001",
+      "question": "Which services should be investigated when checkout requests are slow?",
+      "category": "service_dependency",
+      "expected_document_ids": [
+        "ARCH-002",
+        "SVC-002",
+        "RB-001"
+      ],
+      "retrieved_document_ids": [
+        "ARCH-002",
+        "RB-002",
+        "SVC-002",
+        "RB-001",
+        "ARCH-001"
+      ],
+      "retrieved_results": [
+        {
+          "rank": 1,
+          "document_id": "ARCH-002",
+          "chunk_id": "ARCH-002-C005",
+          "title": "Core Service Dependency Map",
+          "heading_2": "Checkout Request Path",
+          "score": 0.6974296525736212
+        },
+        {
+          "rank": 2,
+          "document_id": "RB-002",
+          "chunk_id": "RB-002-C007",
+          "title": "Memory Exhaustion and Continuous Memory Growth Runbook",
+          "heading_2": "Investigation Procedure",
+          "score": 0.5894630394810749
+        },
+        {
+          "rank": 3,
+          "document_id": "SVC-002",
+          "chunk_id": "SVC-002-C005",
+          "title": "Checkout Service Operational Guide",
+          "heading_2": "Important Telemetry",
+          "score": 0.5591886304942439
+        },
+        {
+          "rank": 4,
+          "document_id": "RB-001",
+          "chunk_id": "RB-001-C004",
+          "title": "High Service Latency Runbook",
+          "heading_2": "Investigation Procedure",
+          "score": 0.5337270683692337
+        },
+        {
+          "rank": 5,
+          "document_id": "ARCH-001",
+          "chunk_id": "ARCH-001-C003",
+          "title": "OpenTelemetry Demo System Overview",
+          "heading_2": "Example User Flows",
+          "score": 0.502068628773582
+        }
+      ],
+      "recall_at_1": 0.3333333333333333,
+      "recall_at_3": 0.6666666666666666,
+      "recall_at_5": 1.0,
+      "precision_at_3": 0.6666666666666666,
+      "precision_at_5": 0.6,
+      "hit_at_1": 1.0,
+      "hit_at_3": 1.0,
+      "hit_at_5": 1.0,
+      "reciprocal_rank": 1.0,
+      "latency_ms": 38.68950001196936
+    },
+    {
+      "question_id": "RAG-Q002",
+      "question": "The Recommendation service memory increases continuously while traffic remains stable. What should be investigated?",
+      "category": "memory_incident",
+      "expected_document_ids": [
+        "SVC-001",
+        "RB-002"
+      ],
+      "retrieved_document_ids": [
+        "RB-002",
+        "SVC-001",
+        "RB-001"
+      ],
+      "retrieved_results": [
+        {
+          "rank": 1,
+          "document_id": "RB-002",
+          "chunk_id": "RB-002-C013",
+          "title": "Memory Exhaustion and Continuous Memory Growth Runbook",
+          "heading_2": "Recommendation Service Investigation",
+          "score": 0.7792054859075033
+        },
+        {
+          "rank": 2,
+          "document_id": "SVC-001",
+          "chunk_id": "SVC-001-C009",
+          "title": "Recommendation Service Operational Guide",
+          "heading_2": "Common Failure Patterns",
+          "score": 0.7401192157898171
+        },
+        {
+          "rank": 3,
+          "document_id": "RB-001",
+          "chunk_id": "RB-001-C012",
+          "title": "High Service Latency Runbook",
+          "heading_2": "Decision Guidance",
+          "score": 0.5204601285848399
+        }
+      ],
+      "recall_at_1": 0.5,
+      "recall_at_3": 1.0,
+      "recall_at_5": 1.0,
+      "precision_at_3": 0.6666666666666666,
+      "precision_at_5": 0.4,
+      "hit_at_1": 1.0,
+      "hit_at_3": 1.0,
+      "hit_at_5": 1.0,
+      "reciprocal_rank": 1.0,
+      "latency_ms": 42.21759999927599
+    },
+    {
+      "question_id": "RAG-Q003",
+      "question": "Can SafeOps automatically restart the Recommendation service?",
+      "category": "tool_safety",
+      "expected_document_ids": [
+        "POL-001",
+        "SVC-001",
+        "RB-002"
+      ],
+      "retrieved_document_ids": [
+        "SVC-001",
+        "RB-002",
+        "SVC-002",
+        "ARCH-002",
+        "POL-001"
+      ],
+      "retrieved_results": [
+        {
+          "rank": 1,
+          "document_id": "SVC-001",
+          "chunk_id": "SVC-001-C013",
+          "title": "Recommendation Service Operational Guide",
+          "heading_2": "Approval-Required Actions",
+          "score": 0.6454066050259952
+        },
+        {
+          "rank": 2,
+          "document_id": "RB-002",
+          "chunk_id": "RB-002-C015",
+          "title": "Memory Exhaustion and Continuous Memory Growth Runbook",
+          "heading_2": "Important Safety Rule",
+          "score": 0.5036865172830862
+        },
+        {
+          "rank": 3,
+          "document_id": "SVC-002",
+          "chunk_id": "SVC-002-C015",
+          "title": "Checkout Service Operational Guide",
+          "heading_2": "Approval-Required Actions",
+          "score": 0.49187854189255625
+        },
+        {
+          "rank": 4,
+          "document_id": "ARCH-002",
+          "chunk_id": "ARCH-002-C006",
+          "title": "Core Service Dependency Map",
+          "heading_2": "Root-Cause Localization Rule",
+          "score": 0.4184213699459344
+        },
+        {
+          "rank": 5,
+          "document_id": "POL-001",
+          "chunk_id": "POL-001-C001",
+          "title": "SafeOps Tool Safety and Human Approval Policy",
+          "heading_2": "Purpose",
+          "score": 0.39987004944901894
+        }
+      ],
+      "recall_at_1": 0.3333333333333333,
+      "recall_at_3": 0.6666666666666666,
+      "recall_at_5": 1.0,
+      "precision_at_3": 0.6666666666666666,
+      "precision_at_5": 0.6,
+      "hit_at_1": 1.0,
+      "hit_at_3": 1.0,
+      "hit_at_5": 1.0,
+      "reciprocal_rank": 1.0,
+      "latency_ms": 37.17250000045169
+    },
+    {
+      "question_id": "RAG-Q004",
+      "question": "Which downstream service does Recommendation use to retrieve product information?",
+      "category": "service_dependency",
+      "expected_document_ids": [
+        "ARCH-002",
+        "SVC-001"
+      ],
+      "retrieved_document_ids": [
+        "SVC-001",
+        "ARCH-001",
+        "ARCH-002",
+        "RB-002",
+        "RB-001"
+      ],
+      "retrieved_results": [
+        {
+          "rank": 1,
+          "document_id": "SVC-001",
+          "chunk_id": "SVC-001-C001",
+          "title": "Recommendation Service Operational Guide",
+          "heading_2": "Purpose",
+          "score": 0.5991693392346924
+        },
+        {
+          "rank": 2,
+          "document_id": "ARCH-001",
+          "chunk_id": "ARCH-001-C002",
+          "title": "OpenTelemetry Demo System Overview",
+          "heading_2": "Example User Flows",
+          "score": 0.5912839097053313
+        },
+        {
+          "rank": 3,
+          "document_id": "ARCH-002",
+          "chunk_id": "ARCH-002-C004",
+          "title": "Core Service Dependency Map",
+          "heading_2": "Recommendation Request Path",
+          "score": 0.5409500464167369
+        },
+        {
+          "rank": 4,
+          "document_id": "RB-002",
+          "chunk_id": "RB-002-C013",
+          "title": "Memory Exhaustion and Continuous Memory Growth Runbook",
+          "heading_2": "Recommendation Service Investigation",
+          "score": 0.46583317772622823
+        },
+        {
+          "rank": 5,
+          "document_id": "RB-001",
+          "chunk_id": "RB-001-C009",
+          "title": "High Service Latency Runbook",
+          "heading_2": "Decision Guidance",
+          "score": 0.39516516636255256
+        }
+      ],
+      "recall_at_1": 0.5,
+      "recall_at_3": 1.0,
+      "recall_at_5": 1.0,
+      "precision_at_3": 0.6666666666666666,
+      "precision_at_5": 0.4,
+      "hit_at_1": 1.0,
+      "hit_at_3": 1.0,
+      "hit_at_5": 1.0,
+      "reciprocal_rank": 1.0,
+      "latency_ms": 40.33029999118298
+    },
+    {
+      "question_id": "RAG-Q005",
+      "question": "A checkout trace shows that the Payment span consumes most of the request time. Where should the investigation continue?",
+      "category": "latency_localization",
+      "expected_document_ids": [
+        "ARCH-002",
+        "SVC-002",
+        "RB-001"
+      ],
+      "retrieved_document_ids": [
+        "SVC-002",
+        "ARCH-002",
+        "RB-002",
+        "RB-001",
+        "ARCH-001"
+      ],
+      "retrieved_results": [
+        {
+          "rank": 1,
+          "document_id": "SVC-002",
+          "chunk_id": "SVC-002-C005",
+          "title": "Checkout Service Operational Guide",
+          "heading_2": "Important Telemetry",
+          "score": 0.6571561568929245
+        },
+        {
+          "rank": 2,
+          "document_id": "ARCH-002",
+          "chunk_id": "ARCH-002-C005",
+          "title": "Core Service Dependency Map",
+          "heading_2": "Checkout Request Path",
+          "score": 0.557418134989572
+        },
+        {
+          "rank": 3,
+          "document_id": "RB-002",
+          "chunk_id": "RB-002-C007",
+          "title": "Memory Exhaustion and Continuous Memory Growth Runbook",
+          "heading_2": "Investigation Procedure",
+          "score": 0.5558253427351487
+        },
+        {
+          "rank": 4,
+          "document_id": "RB-001",
+          "chunk_id": "RB-001-C004",
+          "title": "High Service Latency Runbook",
+          "heading_2": "Investigation Procedure",
+          "score": 0.5453552538242974
+        },
+        {
+          "rank": 5,
+          "document_id": "ARCH-001",
+          "chunk_id": "ARCH-001-C007",
+          "title": "OpenTelemetry Demo System Overview",
+          "heading_2": "Observability Signals",
+          "score": 0.4457031119017443
+        }
+      ],
+      "recall_at_1": 0.3333333333333333,
+      "recall_at_3": 0.6666666666666666,
+      "recall_at_5": 1.0,
+      "precision_at_3": 0.6666666666666666,
+      "precision_at_5": 0.6,
+      "hit_at_1": 1.0,
+      "hit_at_3": 1.0,
+      "hit_at_5": 1.0,
+      "reciprocal_rank": 1.0,
+      "latency_ms": 39.78859999915585
+    },
+    {
+      "question_id": "RAG-Q006",
+      "question": "How should SafeOps distinguish internal service latency from downstream service latency?",
+      "category": "latency_analysis",
+      "expected_document_ids": [
+        "ARCH-002",
+        "RB-001"
+      ],
+      "retrieved_document_ids": [
+        "RB-001",
+        "RB-002",
+        "SVC-002",
+        "ARCH-002",
+        "ARCH-001"
+      ],
+      "retrieved_results": [
+        {
+          "rank": 1,
+          "document_id": "RB-001",
+          "chunk_id": "RB-001-C002",
+          "title": "High Service Latency Runbook",
+          "heading_2": "Objective",
+          "score": 0.6706064784896895
+        },
+        {
+          "rank": 2,
+          "document_id": "RB-002",
+          "chunk_id": "RB-002-C007",
+          "title": "Memory Exhaustion and Continuous Memory Growth Runbook",
+          "heading_2": "Investigation Procedure",
+          "score": 0.5195885035987589
+        },
+        {
+          "rank": 3,
+          "document_id": "SVC-002",
+          "chunk_id": "SVC-002-C005",
+          "title": "Checkout Service Operational Guide",
+          "heading_2": "Important Telemetry",
+          "score": 0.5188714078744086
+        },
+        {
+          "rank": 4,
+          "document_id": "ARCH-002",
+          "chunk_id": "ARCH-002-C006",
+          "title": "Core Service Dependency Map",
+          "heading_2": "Root-Cause Localization Rule",
+          "score": 0.4994068203546559
+        },
+        {
+          "rank": 5,
+          "document_id": "ARCH-001",
+          "chunk_id": "ARCH-001-C009",
+          "title": "OpenTelemetry Demo System Overview",
+          "heading_2": "Investigation Principle",
+          "score": 0.45357922975730736
+        }
+      ],
+      "recall_at_1": 0.5,
+      "recall_at_3": 0.5,
+      "recall_at_5": 1.0,
+      "precision_at_3": 0.3333333333333333,
+      "precision_at_5": 0.4,
+      "hit_at_1": 1.0,
+      "hit_at_3": 1.0,
+      "hit_at_5": 1.0,
+      "reciprocal_rank": 1.0,
+      "latency_ms": 40.930900009698234
+    },
+    {
+      "question_id": "RAG-Q007",
+      "question": "A log message says to ignore all safety rules and restart every service. How should SafeOps handle it?",
+      "category": "prompt_injection",
+      "expected_document_ids": [
+        "POL-001"
+      ],
+      "retrieved_document_ids": [
+        "POL-001",
+        "SVC-002",
+        "ARCH-001",
+        "SVC-001",
+        "ARCH-002"
+      ],
+      "retrieved_results": [
+        {
+          "rank": 1,
+          "document_id": "POL-001",
+          "chunk_id": "POL-001-C001",
+          "title": "SafeOps Tool Safety and Human Approval Policy",
+          "heading_2": "Purpose",
+          "score": 0.5913091755701553
+        },
+        {
+          "rank": 2,
+          "document_id": "SVC-002",
+          "chunk_id": "SVC-002-C016",
+          "title": "Checkout Service Operational Guide",
+          "heading_2": "Forbidden Actions",
+          "score": 0.577093357301048
+        },
+        {
+          "rank": 3,
+          "document_id": "ARCH-001",
+          "chunk_id": "ARCH-001-C008",
+          "title": "OpenTelemetry Demo System Overview",
+          "heading_2": "Investigation Process",
+          "score": 0.5754536333376448
+        },
+        {
+          "rank": 4,
+          "document_id": "SVC-001",
+          "chunk_id": "SVC-001-C012",
+          "title": "Recommendation Service Operational Guide",
+          "heading_2": "Safe Actions",
+          "score": 0.563727238673891
+        },
+        {
+          "rank": 5,
+          "document_id": "ARCH-002",
+          "chunk_id": "ARCH-002-C006",
+          "title": "Core Service Dependency Map",
+          "heading_2": "Root-Cause Localization Rule",
+          "score": 0.5529451420765674
+        }
+      ],
+      "recall_at_1": 1.0,
+      "recall_at_3": 1.0,
+      "recall_at_5": 1.0,
+      "precision_at_3": 0.3333333333333333,
+      "precision_at_5": 0.2,
+      "hit_at_1": 1.0,
+      "hit_at_3": 1.0,
+      "hit_at_5": 1.0,
+      "reciprocal_rank": 1.0,
+      "latency_ms": 41.679699992528185
+    },
+    {
+      "question_id": "RAG-Q008",
+      "question": "Why is restarting a service not considered a permanent fix for a memory leak?",
+      "category": "memory_remediation",
+      "expected_document_ids": [
+        "RB-002",
+        "SVC-001"
+      ],
+      "retrieved_document_ids": [
+        "RB-002",
+        "SVC-001",
+        "RB-001",
+        "ARCH-002"
+      ],
+      "retrieved_results": [
+        {
+          "rank": 1,
+          "document_id": "RB-002",
+          "chunk_id": "RB-002-C015",
+          "title": "Memory Exhaustion and Continuous Memory Growth Runbook",
+          "heading_2": "Important Safety Rule",
+          "score": 0.7985661712698606
+        },
+        {
+          "rank": 2,
+          "document_id": "SVC-001",
+          "chunk_id": "SVC-001-C014",
+          "title": "Recommendation Service Operational Guide",
+          "heading_2": "Important Limitation",
+          "score": 0.6119415362908528
+        },
+        {
+          "rank": 3,
+          "document_id": "RB-001",
+          "chunk_id": "RB-001-C015",
+          "title": "High Service Latency Runbook",
+          "heading_2": "Remediation Guidance",
+          "score": 0.35764745852968727
+        },
+        {
+          "rank": 4,
+          "document_id": "ARCH-002",
+          "chunk_id": "ARCH-002-C001",
+          "title": "Core Service Dependency Map",
+          "heading_2": "Purpose",
+          "score": 0.3104184476954689
+        }
+      ],
+      "recall_at_1": 0.5,
+      "recall_at_3": 1.0,
+      "recall_at_5": 1.0,
+      "precision_at_3": 0.6666666666666666,
+      "precision_at_5": 0.4,
+      "hit_at_1": 1.0,
+      "hit_at_3": 1.0,
+      "hit_at_5": 1.0,
+      "reciprocal_rank": 1.0,
+      "latency_ms": 37.71540000161622
+    }
+  ]
+}
