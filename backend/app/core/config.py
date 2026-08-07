@@ -20,11 +20,7 @@ class Settings(BaseSettings):
     llm_max_retries: int = 2
 
     prometheus_base_url: str = "http://127.0.0.1:9090"
-    jaeger_base_url: str = "http://127.0.0.1:16686"
-    observability_timeout_seconds: float = 10.0
-
-    prometheus_base_url: str = "http://127.0.0.1:9090"
-    jaeger_base_url: str = "http://127.0.0.1:16686"
+    jaeger_base_url: str = "http://127.0.0.1:8080"
     observability_timeout_seconds: float = 10.0
 
     model_config = SettingsConfigDict(

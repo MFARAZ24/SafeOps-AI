@@ -1,7 +1,10 @@
-﻿from fastapi import FastAPI
+from fastapi import FastAPI
 
 from app.api.routes.health import (
     router as health_router,
+)
+from app.api.routes.incidents import (
+    router as incidents_router,
 )
 from app.api.routes.rag import (
     router as rag_router,
@@ -18,10 +21,7 @@ def create_app() -> FastAPI:
         title=settings.app_name,
         version=settings.app_version,
         debug=settings.debug,
-        description=(
-            "Guardrailed incident investigation and "
-            "operational knowledge API."
-        ),
+        description=("Guardrailed incident investigation and operational knowledge API."),
     )
 
     @application.get(
@@ -38,7 +38,7 @@ def create_app() -> FastAPI:
             "version": settings.app_version,
             "environment": settings.environment,
             "documentation": "/docs",
-        } 
+        }
 
     application.include_router(
         health_router,
@@ -47,6 +47,11 @@ def create_app() -> FastAPI:
 
     application.include_router(
         rag_router,
+        prefix=settings.api_v1_prefix,
+    )
+
+    application.include_router(
+        incidents_router,
         prefix=settings.api_v1_prefix,
     )
 
