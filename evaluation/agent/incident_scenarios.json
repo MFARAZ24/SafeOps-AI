@@ -1,0 +1,54 @@
+[
+  {
+    "id": "INC-EVAL-001",
+    "title": "Checkout latency and failures",
+    "question": "Investigate checkout for elevated latency and intermittent failures. Use available metrics, traces, dependencies, and relevant runbook evidence.",
+    "service_name": "checkout",
+    "expected_tools_any": [],
+    "expected_tools_all": [
+      "get_service_metrics",
+      "get_recent_traces",
+      "get_service_dependencies"
+    ],
+    "expected_rag_any": [
+      "SVC-002",
+      "RB-001",
+      "ARCH-002"
+    ]
+  },
+  {
+    "id": "INC-EVAL-002",
+    "title": "Recommendation memory growth",
+    "question": "Investigate why recommendation service memory keeps increasing while traffic is stable. Use available metrics, traces, logs, dependencies, deployments, and relevant runbook evidence.",
+    "service_name": "recommendation",
+    "expected_tools_any": [],
+    "expected_tools_all": [
+      "get_service_metrics",
+      "get_recent_traces",
+      "get_service_dependencies",
+      "search_logs",
+      "get_recent_deployments"
+    ],
+    "expected_rag_any": [
+      "SVC-001",
+      "RB-002"
+    ]
+  },
+  {
+    "id": "INC-EVAL-003",
+    "title": "Checkout dependency degradation",
+    "question": "Investigate checkout dependency health and determine whether a downstream dependency explains recent degradation.",
+    "service_name": "checkout",
+    "expected_tools_any": [
+      "get_recent_traces",
+      "get_service_metrics"
+    ],
+    "expected_tools_all": [
+      "get_service_dependencies"
+    ],
+    "expected_rag_any": [
+      "ARCH-002",
+      "SVC-002"
+    ]
+  }
+]

@@ -263,6 +263,50 @@ def test_enforces_unique_tool_call_limit() -> None:
         )
 
 
+def test_parses_valid_report_embedded_in_reasoning() -> None:
+    model = FakeChatModel(
+        planner_responses=[AIMessage(content="Evidence collection complete.")],
+        synthesis_contents=[],
+    )
+
+    agent = IncidentInvestigationAgent(chat_model=model)
+
+    response = AIMessage(
+        content=(
+            "<think>\n"
+            "I need to produce the required schema.\n"
+            'Example shape: {"service": "string", '
+            '"confidence": "low"}\n'
+            "</think>\n\n"
+            "{"
+            '"service":"checkout",'
+            '"question":"Investigate checkout.",'
+            '"incident_summary":"Checkout latency is elevated.",'
+            '"likely_root_cause":"The available evidence does not '
+            'confirm one root cause.",'
+            '"confidence":"low",'
+            '"evidence":["p95 latency is elevated."],'
+            '"recommended_next_checks":['
+            '"Inspect downstream dependency metrics."],'
+            '"limitations":["Live trace evidence is unavailable."],'
+            '"tools_used":["get_service_metrics"],'
+            '"evidence_sources":["fixture"],'
+            '"knowledge_documents":["RB-001"],'
+            '"safety_status":"read_only_only"'
+            "}\n\n"
+            "Additional trailing model text that must be ignored."
+        )
+    )
+
+    report = agent._parse_report_message(response)
+
+    assert report.service == "checkout"
+    assert report.confidence == "low"
+    assert report.tools_used == ["get_service_metrics"]
+    assert report.evidence_sources == ["fixture"]
+    assert report.safety_status == ("read_only_only")
+
+
 def test_repairs_non_json_report() -> None:
     model = FakeChatModel(
         planner_responses=[AIMessage(content="Evidence collection complete.")],
@@ -312,6 +356,78 @@ def test_accepts_escaped_json_report() -> None:
     assert result.report.service == "checkout"
     assert result.report.confidence == "medium"
     assert result.report.safety_status == "read_only_only"
+
+
+def test_read_only_tool_failure_does_not_abort_investigation() -> None:
+    model = FakeChatModel(
+        planner_responses=[
+            AIMessage(
+                content="",
+                tool_calls=[
+                    {
+                        "name": "get_service_metrics",
+                        "args": {
+                            "service_name": "cart",
+                            "window": "1h",
+                        },
+                        "id": "call-cart-metrics",
+                        "type": "tool_call",
+                    }
+                ],
+            ),
+            AIMessage(content="Evidence collection complete."),
+        ],
+        synthesis_contents=[
+            (
+                '{"service":"checkout",'
+                '"question":"Investigate checkout.",'
+                '"incident_summary":"Some evidence was unavailable.",'
+                '"likely_root_cause":"No root cause was confirmed.",'
+                '"confidence":"low",'
+                '"evidence":["Cart metrics were unavailable."],'
+                '"recommended_next_checks":["Inspect other read-only evidence."],'
+                '"limitations":["Cart metrics were unavailable."],'
+                '"tools_used":["get_service_metrics"],'
+                '"evidence_sources":[],'
+                '"knowledge_documents":[],'
+                '"safety_status":"read_only_only"}'
+            )
+        ],
+    )
+
+    def failing_metrics_tool(
+        service_name: str,
+        *,
+        window: str = "5m",
+    ) -> dict:
+        del service_name, window
+
+        raise ValueError("No metric fixture is available for service: cart")
+
+    agent = IncidentInvestigationAgent(
+        chat_model=model,
+    )
+
+    metric_tool = agent._tool_map["get_service_metrics"]
+
+    metric_tool.func = failing_metrics_tool
+
+    result = agent.investigate(
+        IncidentInvestigationRequest(
+            question="Investigate checkout.",
+            service_name="checkout",
+        )
+    )
+
+    assert result.report.safety_status == "read_only_only"
+    assert len(result.tool_calls) == 1
+
+    failed_call = result.tool_calls[0]
+
+    assert failed_call.tool_name == "get_service_metrics"
+    assert failed_call.warning is not None
+    assert "No metric fixture" in failed_call.warning
+    assert failed_call.result["result"]["status"] == "unavailable"
 
 
 def test_returns_safe_fallback_after_invalid_report() -> None:

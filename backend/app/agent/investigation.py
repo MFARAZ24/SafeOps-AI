@@ -134,6 +134,44 @@ class IncidentInvestigationAgent:
         self._tool_map = {tool.name: tool for tool in self._tools}
         self._bound_model = chat_model.bind_tools(self._tools)
 
+    @staticmethod
+    def _explicitly_requested_tool_names(
+        question: str,
+    ) -> set[str]:
+        """Map explicitly named evidence categories to tools."""
+
+        normalized = question.lower()
+
+        evidence_keywords = {
+            "get_service_metrics": (
+                "metric",
+                "metrics",
+            ),
+            "get_recent_traces": (
+                "trace",
+                "traces",
+                "tracing",
+            ),
+            "get_service_dependencies": (
+                "dependency",
+                "dependencies",
+            ),
+            "search_logs": (
+                "log",
+                "logs",
+            ),
+            "get_recent_deployments": (
+                "deployment",
+                "deployments",
+            ),
+        }
+
+        return {
+            tool_name
+            for tool_name, keywords in evidence_keywords.items()
+            if any(keyword in normalized for keyword in keywords)
+        }
+
     def investigate(
         self,
         request: IncidentInvestigationRequest,
@@ -141,6 +179,8 @@ class IncidentInvestigationAgent:
         """Collect RAG and operational evidence."""
 
         service_name = normalize_service_name(request.service_name)
+
+        requested_tool_names = self._explicitly_requested_tool_names(request.question)
 
         (
             knowledge_evidence,
@@ -185,6 +225,41 @@ class IncidentInvestigationAgent:
                 if note:
                     planning_notes.append(note)
 
+                executed_tool_names = {record.tool_name.value for record in tool_records}
+
+                missing_requested_tools = sorted(requested_tool_names - executed_tool_names)
+
+                can_collect_more = (
+                    bool(missing_requested_tools) and len(executed_calls) < request.max_tool_calls
+                )
+
+                if can_collect_more:
+                    planning_notes.append(
+                        "Planner attempted to stop before "
+                        "collecting explicitly requested "
+                        "evidence: " + ", ".join(missing_requested_tools) + "."
+                    )
+
+                    messages.append(
+                        HumanMessage(
+                            content=(
+                                "The incident question "
+                                "explicitly requested evidence "
+                                "that has not yet been collected. "
+                                "Continue the investigation using "
+                                "the approved read-only tools for "
+                                "these missing categories: "
+                                + ", ".join(missing_requested_tools)
+                                + ". Do not repeat completed "
+                                "tool calls. After collecting "
+                                "these requested categories, "
+                                "you may finish the investigation."
+                            )
+                        )
+                    )
+
+                    continue
+
                 break
 
             for raw_call in response.tool_calls:
@@ -212,6 +287,91 @@ class IncidentInvestigationAgent:
             planning_notes.append(
                 "Planning-round limit reached; the report uses the evidence collected so far."
             )
+
+            # The LLM planner may stop or exhaust its planning rounds before
+            # collecting every evidence category explicitly requested by the
+            # user. Complete only those explicitly requested categories here.
+            executed_tool_names = {record.tool_name.value for record in tool_records}
+
+            missing_requested_tools = requested_tool_names - executed_tool_names
+
+            completion_order = [
+                IncidentToolName.GET_SERVICE_METRICS.value,
+                IncidentToolName.GET_RECENT_TRACES.value,
+                IncidentToolName.GET_SERVICE_DEPENDENCIES.value,
+                IncidentToolName.SEARCH_LOGS.value,
+                IncidentToolName.GET_RECENT_DEPLOYMENTS.value,
+            ]
+
+            controller_arguments: dict[
+                str,
+                dict[str, Any],
+            ] = {
+                IncidentToolName.GET_SERVICE_METRICS.value: {
+                    "service_name": service_name,
+                    "window": request.metrics_window,
+                },
+                IncidentToolName.GET_RECENT_TRACES.value: {
+                    "service_name": service_name,
+                    "lookback": request.trace_lookback,
+                    "limit": 10,
+                },
+                IncidentToolName.GET_SERVICE_DEPENDENCIES.value: {
+                    "service_name": service_name,
+                },
+                IncidentToolName.SEARCH_LOGS.value: {
+                    "service_name": service_name,
+                    "keywords": None,
+                    "severity": None,
+                    "limit": 20,
+                },
+                IncidentToolName.GET_RECENT_DEPLOYMENTS.value: {
+                    "service_name": service_name,
+                    "limit": 5,
+                },
+            }
+
+            for tool_name in completion_order:
+                if tool_name not in missing_requested_tools:
+                    continue
+
+                if len(executed_calls) >= request.max_tool_calls:
+                    planning_notes.append(
+                        "Unable to collect all explicitly requested "
+                        "evidence because the configured tool-call "
+                        "limit was reached. Missing: "
+                        + ", ".join(
+                            sorted(
+                                missing_requested_tools
+                                - {record.tool_name.value for record in tool_records}
+                            )
+                        )
+                        + "."
+                    )
+                    break
+
+                (
+                    record,
+                    _tool_message,
+                    reused,
+                ) = self._execute_tool_call(
+                    raw_call={
+                        "name": tool_name,
+                        "args": controller_arguments[tool_name],
+                        "id": ("controller-required-" + tool_name),
+                    },
+                    executed_calls=executed_calls,
+                    max_tool_calls=request.max_tool_calls,
+                )
+
+                if reused:
+                    continue
+
+                tool_records.append(record)
+
+                planning_notes.append(
+                    f"Controller collected explicitly requested evidence using {tool_name}."
+                )
 
         report = self._synthesize_report(
             request=request,
@@ -330,12 +490,41 @@ class IncidentInvestigationAgent:
 
         try:
             raw_result = tool.invoke(arguments)
+
         except Exception as exc:
-            raise AgentToolExecutionError(f"Tool execution failed: {tool_name.value}") from exc
+            # Tool/data-source unavailability should not terminate the
+            # entire investigation. Preserve the failed attempt as
+            # read-only evidence with an explicit warning so synthesis
+            # can report the missing evidence.
+            service = str(
+                arguments.get(
+                    "service_name",
+                    "unknown",
+                )
+            )
+
+            failure_warning = (
+                f"{tool_name.value} could not collect evidence "
+                f"for service {service}: "
+                f"{type(exc).__name__}: {exc}"
+            )
+
+            raw_result = {
+                "tool_name": tool_name.value,
+                "service": service,
+                "risk_level": "safe_read_only",
+                "requires_approval": False,
+                "source": None,
+                "warning": failure_warning,
+                "result": {
+                    "status": "unavailable",
+                    "error_type": type(exc).__name__,
+                    "error": str(exc),
+                },
+            }
 
         if not isinstance(raw_result, dict):
             raise AgentToolExecutionError("Agent tools must return dictionary evidence.")
-
         source = self._parse_source(raw_result.get("source"))
 
         warning_value = raw_result.get("warning")
@@ -363,6 +552,224 @@ class IncidentInvestigationAgent:
 
         return record, tool_message, False
 
+    @staticmethod
+    def _compact_tool_evidence(
+        tool_records: list[AgentToolCallRecord],
+    ) -> list[dict[str, Any]]:
+        """Create a bounded evidence projection for LLM synthesis."""
+
+        compact_records: list[dict[str, Any]] = []
+
+        for record in tool_records:
+            raw = record.model_dump(mode="json")
+
+            tool_name = str(
+                raw.get(
+                    "tool_name",
+                    "",
+                )
+            )
+
+            wrapper = raw.get("result")
+
+            if not isinstance(wrapper, dict):
+                wrapper = {}
+
+            payload = wrapper.get("result")
+
+            if not isinstance(payload, dict):
+                payload = {}
+
+            compact: dict[str, Any] = {
+                "tool_name": tool_name,
+                "source": (raw.get("source") or wrapper.get("source")),
+                "warning": (raw.get("warning") or wrapper.get("warning")),
+            }
+
+            if tool_name == "get_service_metrics":
+                compact["result"] = {
+                    key: payload.get(key)
+                    for key in (
+                        "service",
+                        "window",
+                        "request_rate_rps",
+                        "error_rate_percent",
+                        "p50_latency_ms",
+                        "p95_latency_ms",
+                        "p99_latency_ms",
+                        "cpu_percent",
+                        "memory_percent",
+                        "memory_usage_bytes",
+                    )
+                }
+
+            elif tool_name == "get_service_dependencies":
+                compact["result"] = {
+                    key: payload.get(key)
+                    for key in (
+                        "service",
+                        "upstream_services",
+                        "downstream_services",
+                        "databases",
+                        "message_queues",
+                    )
+                }
+
+            elif tool_name == "get_recent_traces":
+                raw_traces = payload.get(
+                    "traces",
+                    [],
+                )
+
+                traces = [trace for trace in raw_traces if isinstance(trace, dict)]
+
+                error_traces = [trace for trace in traces if bool(trace.get("has_error"))]
+
+                durations = [
+                    float(trace["duration_ms"])
+                    for trace in traces
+                    if trace.get("duration_ms") is not None
+                ]
+
+                representative: list[dict[str, Any]] = []
+
+                selected_ids: set[str] = set()
+
+                # Prefer traces containing errors.
+                for trace in error_traces[:2]:
+                    trace_id = str(
+                        trace.get(
+                            "trace_id",
+                            "",
+                        )
+                    )
+
+                    if trace_id:
+                        selected_ids.add(trace_id)
+
+                    representative.append(trace)
+
+                # Then include the slowest traces until we have
+                # at most three representative examples.
+                slowest = sorted(
+                    traces,
+                    key=lambda trace: float(
+                        trace.get(
+                            "duration_ms",
+                            0.0,
+                        )
+                        or 0.0
+                    ),
+                    reverse=True,
+                )
+
+                for trace in slowest:
+                    if len(representative) >= 3:
+                        break
+
+                    trace_id = str(
+                        trace.get(
+                            "trace_id",
+                            "",
+                        )
+                    )
+
+                    if trace_id in selected_ids:
+                        continue
+
+                    selected_ids.add(trace_id)
+                    representative.append(trace)
+
+                compact_traces = []
+
+                for trace in representative:
+                    compact_traces.append(
+                        {
+                            "trace_id": trace.get("trace_id"),
+                            "duration_ms": trace.get("duration_ms"),
+                            "has_error": trace.get("has_error"),
+                            "error_operations": (
+                                trace.get(
+                                    "error_operations",
+                                    [],
+                                )[:5]
+                            ),
+                            "services": (
+                                trace.get(
+                                    "services",
+                                    [],
+                                )[:12]
+                            ),
+                            "key_events": (
+                                trace.get(
+                                    "key_events",
+                                    [],
+                                )[:8]
+                            ),
+                        }
+                    )
+
+                compact["result"] = {
+                    "service": payload.get("service"),
+                    "lookback": payload.get("lookback"),
+                    "result_count": payload.get(
+                        "result_count",
+                        len(traces),
+                    ),
+                    "error_trace_count": len(error_traces),
+                    "minimum_duration_ms": (min(durations) if durations else None),
+                    "maximum_duration_ms": (max(durations) if durations else None),
+                    "representative_traces": (compact_traces),
+                }
+
+            else:
+                # Logs and deployment payloads can vary.
+                # Preserve a bounded textual representation rather
+                # than sending an arbitrarily large raw result.
+                serialized = json.dumps(
+                    payload,
+                    ensure_ascii=False,
+                    default=str,
+                )
+
+                compact["result_summary"] = serialized[:1800]
+
+            compact_records.append(compact)
+
+        return compact_records
+
+    @staticmethod
+    def _compact_knowledge_evidence(
+        knowledge_evidence: list[KnowledgeEvidence],
+    ) -> list[dict[str, Any]]:
+        """Create bounded RAG evidence for report synthesis."""
+
+        compact: list[dict[str, Any]] = []
+
+        for item in knowledge_evidence:
+            raw = item.model_dump(mode="json")
+
+            content = str(
+                raw.get(
+                    "content",
+                    "",
+                )
+            )
+
+            compact.append(
+                {
+                    "document_id": raw.get("document_id"),
+                    "title": raw.get("title"),
+                    "document_type": raw.get("document_type"),
+                    "service": raw.get("service"),
+                    "section": raw.get("section"),
+                    "source": raw.get("source"),
+                    "content_excerpt": (content[:800]),
+                }
+            )
+
+        return compact
+
     def _synthesize_report(
         self,
         *,
@@ -372,16 +779,40 @@ class IncidentInvestigationAgent:
         planning_notes: list[str],
         knowledge_evidence: list[KnowledgeEvidence],
     ) -> IncidentInvestigationReport:
-        schema = IncidentInvestigationReport.model_json_schema()
+        """Synthesize a grounded report from bounded evidence."""
 
-        synthesis_request = {
+        # Preserve the complete evidence for deterministic fallback.
+        # This data is not sent wholesale to the LLM.
+        fallback_request = {
             "service": service_name,
             "question": request.question,
             "tool_evidence": [record.model_dump(mode="json") for record in tool_records],
             "knowledge_evidence": [item.model_dump(mode="json") for item in knowledge_evidence],
+        }
+
+        compact_schema = {
+            "service": "string",
+            "question": "string",
+            "incident_summary": "string",
+            "likely_root_cause": "string",
+            "confidence": ("low | medium | high"),
+            "evidence": ["string"],
+            "recommended_next_checks": ["string"],
+            "limitations": ["string"],
+            "tools_used": ["approved tool name"],
+            "evidence_sources": ["live | fixture"],
+            "knowledge_documents": ["document ID"],
+            "safety_status": ("read_only_only"),
+        }
+
+        synthesis_request = {
+            "service": service_name,
+            "question": request.question,
+            "tool_evidence": (self._compact_tool_evidence(tool_records)),
+            "knowledge_evidence": (self._compact_knowledge_evidence(knowledge_evidence)),
             "allowed_knowledge_document_ids": [item.document_id for item in knowledge_evidence],
-            "planning_notes": planning_notes,
-            "required_json_schema": schema,
+            "planning_notes": (planning_notes[-3:]),
+            "required_object_shape": (compact_schema),
         }
 
         messages: list[BaseMessage] = [
@@ -389,7 +820,6 @@ class IncidentInvestigationAgent:
             HumanMessage(
                 content=json.dumps(
                     synthesis_request,
-                    indent=2,
                     ensure_ascii=False,
                 )
             ),
@@ -400,11 +830,13 @@ class IncidentInvestigationAgent:
         if report is None:
             report = self._text_report_with_repair(
                 messages=messages,
-                synthesis_request=synthesis_request,
+                synthesis_request=(fallback_request),
             )
 
         actual_tools = self._unique_tools(tool_records)
+
         actual_sources = self._unique_sources(tool_records)
+
         actual_documents = list(dict.fromkeys(item.document_id for item in knowledge_evidence))
 
         return report.model_copy(
@@ -412,8 +844,8 @@ class IncidentInvestigationAgent:
                 "service": service_name,
                 "question": request.question,
                 "tools_used": actual_tools,
-                "evidence_sources": actual_sources,
-                "knowledge_documents": actual_documents,
+                "evidence_sources": (actual_sources),
+                "knowledge_documents": (actual_documents),
                 "safety_status": (AgentSafetyStatus.READ_ONLY_ONLY),
             }
         )
@@ -868,17 +1300,150 @@ class IncidentInvestigationAgent:
             safety_status=(AgentSafetyStatus.READ_ONLY_ONLY),
         )
 
+    @staticmethod
+    def _balanced_json_objects(
+        text: str,
+    ) -> list[str]:
+        """Extract complete top-level JSON objects embedded in text."""
+
+        objects: list[str] = []
+
+        start: int | None = None
+        depth = 0
+        in_string = False
+        escaped = False
+
+        for index, character in enumerate(text):
+            if in_string:
+                if escaped:
+                    escaped = False
+                    continue
+
+                if character == "\\":
+                    escaped = True
+                    continue
+
+                if character == '"':
+                    in_string = False
+
+                continue
+
+            if character == '"':
+                in_string = True
+                continue
+
+            if character == "{":
+                if depth == 0:
+                    start = index
+
+                depth += 1
+                continue
+
+            if character == "}" and depth > 0:
+                depth -= 1
+
+                if depth == 0 and start is not None:
+                    objects.append(text[start : index + 1])
+                    start = None
+
+        return objects
+
     @classmethod
     def _parse_report_message(
-        cls,
+        self,
         message: BaseMessage,
     ) -> IncidentInvestigationReport:
-        """Parse a structured report from a model response."""
+        """Parse a valid incident report from model output."""
 
-        if not isinstance(message, AIMessage):
-            raise InvestigationOutputError("Report synthesizer must return an AIMessage.")
+        raw_text = self._base_message_text(message).strip()
 
-        return cls._parse_report_text(cls._message_text(message))
+        if not raw_text:
+            raise InvestigationOutputError("The model returned an empty incident report.")
+
+        text_variants = [
+            raw_text,
+        ]
+
+        unescaped_text = self._unescape_json_text(raw_text).strip()
+
+        if unescaped_text and unescaped_text != raw_text:
+            text_variants.append(unescaped_text)
+
+        candidates: list[str] = []
+
+        for text in text_variants:
+            # Keep the complete response as a candidate so
+            # ordinary clean JSON responses still work.
+            candidates.append(text)
+
+            # Also find JSON objects embedded inside reasoning,
+            # prose, Markdown, or trailing model output.
+            candidates.extend(self._balanced_json_objects(text))
+
+        # Deduplicate while preserving discovery order.
+        unique_candidates = list(dict.fromkeys(candidates))
+
+        # Prefer later objects. Reasoning models often mention a
+        # schema/example first and emit the actual report last.
+        for candidate in reversed(unique_candidates):
+            candidate = candidate.strip()
+
+            if not candidate:
+                continue
+
+            payload: Any = None
+
+            try:
+                payload = json.loads(candidate)
+            except (
+                json.JSONDecodeError,
+                TypeError,
+            ):
+                try:
+                    payload = ast.literal_eval(candidate)
+                except (
+                    ValueError,
+                    SyntaxError,
+                ):
+                    continue
+
+            # Some models return JSON that itself contains a
+            # JSON-encoded string. Decode a few safe layers.
+            for _ in range(4):
+                if not isinstance(
+                    payload,
+                    str,
+                ):
+                    break
+
+                nested = payload.strip()
+
+                try:
+                    payload = json.loads(nested)
+                except (
+                    json.JSONDecodeError,
+                    TypeError,
+                ):
+                    try:
+                        payload = ast.literal_eval(nested)
+                    except (
+                        ValueError,
+                        SyntaxError,
+                    ):
+                        break
+
+            if not isinstance(
+                payload,
+                dict,
+            ):
+                continue
+
+            try:
+                return IncidentInvestigationReport.model_validate(payload)
+            except ValueError:
+                continue
+
+        raise InvestigationOutputError("The model returned an invalid incident report.")
 
     @classmethod
     def _parse_report_text(
