@@ -198,6 +198,9 @@ def evaluate_result(
             3,
         ),
         "rag_retrieval_elapsed_ms": (result.rag_retrieval_elapsed_ms),
+        "timing": result.timing.model_dump(
+            mode="json",
+        ),
         "executed_tools": executed_tools,
         "tool_call_count": len(tool_records),
         "knowledge_documents": sorted(actual_documents),
@@ -300,6 +303,125 @@ def print_result(
         result["elapsed_seconds"],
         "seconds",
     )
+    timing = result.get("timing") or {}
+
+    if timing:
+        print("Timing breakdown:")
+
+        print(
+            "  RAG retrieval:",
+            round(
+                (timing.get("rag_retrieval_ms") or 0.0) / 1000,
+                3,
+            ),
+            "s",
+        )
+
+        print(
+            "  Planner LLM:",
+            round(
+                timing.get("planner_llm_ms", 0.0) / 1000,
+                3,
+            ),
+            "s",
+        )
+
+        print(
+            "  Planned tools:",
+            round(
+                timing.get(
+                    "planned_tool_execution_ms",
+                    0.0,
+                )
+                / 1000,
+                3,
+            ),
+            "s",
+        )
+
+        print(
+            "  Planner calls:",
+            timing.get(
+                "planner_round_count",
+                0,
+            ),
+        )
+
+        print(
+            "  Planner rounds:",
+            [round(value / 1000, 3) for value in timing.get("planner_round_ms", [])],
+            "s",
+        )
+
+        print(
+            "  Controller:",
+            round(
+                timing.get(
+                    "controller_completion_ms",
+                    0.0,
+                )
+                / 1000,
+                3,
+            ),
+            "s",
+        )
+
+        print(
+            "  Synthesis:",
+            round(
+                timing.get("synthesis_ms", 0.0) / 1000,
+                3,
+            ),
+            "s",
+        )
+
+        print(
+            "    Structured report:",
+            round(
+                timing.get(
+                    "structured_report_ms",
+                    0.0,
+                )
+                / 1000,
+                3,
+            ),
+            "s",
+        )
+
+        print(
+            "    Text synthesis:",
+            round(
+                timing.get(
+                    "text_synthesis_ms",
+                    0.0,
+                )
+                / 1000,
+                3,
+            ),
+            "s",
+        )
+
+        print(
+            "    Repair:",
+            round(
+                timing.get(
+                    "repair_ms",
+                    0.0,
+                )
+                / 1000,
+                3,
+            ),
+            "s",
+        )
+
+        print(
+            "  Agent total:",
+            round(
+                timing.get("total_ms", 0.0) / 1000,
+                3,
+            ),
+            "s",
+        )
     print(
         "Tools:",
         ", ".join(result["executed_tools"]) or "none",

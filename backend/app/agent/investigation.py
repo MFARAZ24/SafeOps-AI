@@ -1,6 +1,7 @@
 import ast
 import json
 from collections.abc import Sequence
+from time import perf_counter
 from typing import Any, Protocol
 
 from langchain_core.messages import (
@@ -18,6 +19,7 @@ from app.agent.investigation_schemas import (
     IncidentInvestigationReport,
     IncidentInvestigationRequest,
     IncidentInvestigationResult,
+    InvestigationTiming,
     KnowledgeEvidence,
 )
 from app.agent.prompts import (
@@ -178,6 +180,19 @@ class IncidentInvestigationAgent:
     ) -> IncidentInvestigationResult:
         """Collect RAG and operational evidence."""
 
+        investigation_started = perf_counter()
+
+        synthesis_stage_timings = {
+            "structured_report_ms": 0.0,
+            "text_synthesis_ms": 0.0,
+            "repair_ms": 0.0,
+        }
+
+        planner_llm_ms = 0.0
+        planner_round_ms: list[float] = []
+        planned_tool_execution_ms = 0.0
+        controller_completion_ms = 0.0
+
         service_name = normalize_service_name(request.service_name)
 
         requested_tool_names = self._explicitly_requested_tool_names(request.question)
@@ -212,7 +227,20 @@ class IncidentInvestigationAgent:
         ] = {}
 
         for _ in range(request.max_planning_rounds):
+            planner_started = perf_counter()
+
             response = self._bound_model.invoke(messages)
+
+            planner_elapsed_ms = (perf_counter() - planner_started) * 1000
+
+            planner_llm_ms += planner_elapsed_ms
+
+            planner_round_ms.append(
+                round(
+                    planner_elapsed_ms,
+                    3,
+                )
+            )
 
             if not isinstance(response, AIMessage):
                 raise IncidentAgentError("Planner must return an AIMessage.")
@@ -263,6 +291,8 @@ class IncidentInvestigationAgent:
                 break
 
             for raw_call in response.tool_calls:
+                tool_started = perf_counter()
+
                 (
                     record,
                     tool_message,
@@ -272,6 +302,8 @@ class IncidentInvestigationAgent:
                     executed_calls=executed_calls,
                     max_tool_calls=request.max_tool_calls,
                 )
+
+                planned_tool_execution_ms += (perf_counter() - tool_started) * 1000
 
                 messages.append(tool_message)
 
@@ -288,9 +320,12 @@ class IncidentInvestigationAgent:
                 "Planning-round limit reached; the report uses the evidence collected so far."
             )
 
-            # The LLM planner may stop or exhaust its planning rounds before
-            # collecting every evidence category explicitly requested by the
-            # user. Complete only those explicitly requested categories here.
+            controller_started = perf_counter()
+
+            # The LLM planner may stop or exhaust its planning rounds
+            # before collecting every evidence category explicitly
+            # requested by the user. Complete only those explicitly
+            # requested categories here.
             executed_tool_names = {record.tool_name.value for record in tool_records}
 
             missing_requested_tools = requested_tool_names - executed_tool_names
@@ -337,9 +372,10 @@ class IncidentInvestigationAgent:
 
                 if len(executed_calls) >= request.max_tool_calls:
                     planning_notes.append(
-                        "Unable to collect all explicitly requested "
-                        "evidence because the configured tool-call "
-                        "limit was reached. Missing: "
+                        "Unable to collect all explicitly "
+                        "requested evidence because the "
+                        "configured tool-call limit was "
+                        "reached. Missing: "
                         + ", ".join(
                             sorted(
                                 missing_requested_tools
@@ -373,12 +409,59 @@ class IncidentInvestigationAgent:
                     f"Controller collected explicitly requested evidence using {tool_name}."
                 )
 
+            controller_completion_ms = (perf_counter() - controller_started) * 1000
+
+        synthesis_started = perf_counter()
+
         report = self._synthesize_report(
             request=request,
             service_name=service_name,
             tool_records=tool_records,
             planning_notes=planning_notes,
             knowledge_evidence=knowledge_evidence,
+            stage_timings=synthesis_stage_timings,
+        )
+
+        synthesis_ms = (perf_counter() - synthesis_started) * 1000
+
+        total_ms = (perf_counter() - investigation_started) * 1000
+
+        timing = InvestigationTiming(
+            rag_retrieval_ms=rag_elapsed_ms,
+            planner_llm_ms=round(
+                planner_llm_ms,
+                3,
+            ),
+            planner_round_count=len(planner_round_ms),
+            planner_round_ms=planner_round_ms,
+            planned_tool_execution_ms=round(
+                planned_tool_execution_ms,
+                3,
+            ),
+            controller_completion_ms=round(
+                controller_completion_ms,
+                3,
+            ),
+            synthesis_ms=round(
+                synthesis_ms,
+                3,
+            ),
+            total_ms=round(
+                total_ms,
+                3,
+            ),
+            structured_report_ms=round(
+                synthesis_stage_timings["structured_report_ms"],
+                3,
+            ),
+            text_synthesis_ms=round(
+                synthesis_stage_timings["text_synthesis_ms"],
+                3,
+            ),
+            repair_ms=round(
+                synthesis_stage_timings["repair_ms"],
+                3,
+            ),
         )
 
         return IncidentInvestigationResult(
@@ -388,6 +471,7 @@ class IncidentInvestigationAgent:
             rag_retriever=rag_retriever,
             rag_retrieval_elapsed_ms=rag_elapsed_ms,
             rag_evidence=(knowledge_evidence if request.include_rag_evidence else None),
+            timing=timing,
         )
 
     def _retrieve_knowledge(
@@ -778,6 +862,7 @@ class IncidentInvestigationAgent:
         tool_records: list[AgentToolCallRecord],
         planning_notes: list[str],
         knowledge_evidence: list[KnowledgeEvidence],
+        stage_timings: dict[str, float] | None = None,
     ) -> IncidentInvestigationReport:
         """Synthesize a grounded report from bounded evidence."""
 
@@ -825,13 +910,16 @@ class IncidentInvestigationAgent:
             ),
         ]
 
-        report = self._structured_report(messages)
-
-        if report is None:
-            report = self._text_report_with_repair(
-                messages=messages,
-                synthesis_request=(fallback_request),
-            )
+        # Use the dedicated report/chat model directly for JSON synthesis.
+        # The older structured-output attempt is intentionally skipped here
+        # because it added a redundant model call with the current provider.
+        # Repair remains available only when the primary response cannot be
+        # parsed into IncidentInvestigationReport.
+        report = self._text_report_with_repair(
+            messages=messages,
+            synthesis_request=fallback_request,
+            stage_timings=stage_timings,
+        )
 
         actual_tools = self._unique_tools(tool_records)
 
@@ -881,18 +969,32 @@ class IncidentInvestigationAgent:
         *,
         messages: list[BaseMessage],
         synthesis_request: dict[str, Any],
+        stage_timings: dict[str, float] | None = None,
     ) -> IncidentInvestigationReport:
         """Generate, compactly repair, or safely fall back."""
 
+        # Production can supply a report-specific JSON-mode model. Tests and
+        # callers that do not provide one continue to use the injected chat
+        # model, preserving the existing fake-model test contract.
+        synthesis_model = self._report_model if self._report_model is not None else self._chat_model
+
+        text_started = perf_counter()
+
         try:
-            response = self._chat_model.invoke(messages)
+            response = synthesis_model.invoke(messages)
         except Exception as exc:
+            if stage_timings is not None:
+                stage_timings["text_synthesis_ms"] += (perf_counter() - text_started) * 1000
+
             return self._build_fallback_report(
                 synthesis_request=synthesis_request,
                 failure_reason=(
                     f"Initial report synthesis request failed: {type(exc).__name__}: {exc}"
                 ),
             )
+
+        if stage_timings is not None:
+            stage_timings["text_synthesis_ms"] += (perf_counter() - text_started) * 1000
 
         try:
             return self._parse_report_message(response)
@@ -929,10 +1031,12 @@ class IncidentInvestigationAgent:
             ),
         }
 
+        repair_started = perf_counter()
+
         try:
-            repair_response = self._chat_model.invoke(
+            repair_response = synthesis_model.invoke(
                 [
-                    SystemMessage(content=(REPORT_REPAIR_SYSTEM_PROMPT)),
+                    SystemMessage(content=REPORT_REPAIR_SYSTEM_PROMPT),
                     HumanMessage(
                         content=json.dumps(
                             repair_payload,
@@ -942,10 +1046,16 @@ class IncidentInvestigationAgent:
                 ]
             )
         except Exception as exc:
+            if stage_timings is not None:
+                stage_timings["repair_ms"] += (perf_counter() - repair_started) * 1000
+
             return self._build_fallback_report(
                 synthesis_request=synthesis_request,
                 failure_reason=(f"Report repair request failed: {type(exc).__name__}: {exc}"),
             )
+
+        if stage_timings is not None:
+            stage_timings["repair_ms"] += (perf_counter() - repair_started) * 1000
 
         try:
             return self._parse_report_message(repair_response)

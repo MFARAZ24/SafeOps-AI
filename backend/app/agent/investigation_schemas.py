@@ -113,6 +113,25 @@ class IncidentInvestigationReport(BaseModel):
     safety_status: AgentSafetyStatus = AgentSafetyStatus.READ_ONLY_ONLY
 
 
+class InvestigationTiming(BaseModel):
+    """Latency breakdown for one incident investigation."""
+
+    rag_retrieval_ms: float | None = None
+
+    planner_llm_ms: float = 0.0
+    planner_round_count: int = 0
+    planner_round_ms: list[float] = Field(default_factory=list)
+    planned_tool_execution_ms: float = 0.0
+    controller_completion_ms: float = 0.0
+
+    synthesis_ms: float = 0.0
+    structured_report_ms: float = 0.0
+    text_synthesis_ms: float = 0.0
+    repair_ms: float = 0.0
+
+    total_ms: float = 0.0
+
+
 class IncidentInvestigationResult(BaseModel):
     """Complete investigation output and execution record."""
 
@@ -123,3 +142,5 @@ class IncidentInvestigationResult(BaseModel):
     rag_retriever: RetrieverType | None = None
     rag_retrieval_elapsed_ms: float | None = None
     rag_evidence: list[KnowledgeEvidence] | None = None
+
+    timing: InvestigationTiming = Field(default_factory=InvestigationTiming)
