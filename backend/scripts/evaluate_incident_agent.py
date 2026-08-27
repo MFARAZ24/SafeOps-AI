@@ -74,7 +74,7 @@ def load_scenarios(
 ) -> list[dict[str, Any]]:
     with path.open(
         "r",
-        encoding="utf-8",
+        encoding="utf-8-sig",
     ) as handle:
         scenarios = json.load(handle)
 
@@ -206,6 +206,7 @@ def evaluate_result(
         "knowledge_documents": sorted(actual_documents),
         "evidence_sources": sorted(actual_sources),
         "confidence": enum_value(result.report.confidence),
+        "report": result.report.model_dump(mode="json"),
         "fallback_used": fallback_used,
         "checks": {
             "allowed_tool_compliance": (allowed_tool_compliance),
@@ -545,7 +546,7 @@ def main() -> None:
 
     with result_path.open(
         "w",
-        encoding="utf-8",
+        encoding="utf-8-sig",
     ) as handle:
         json.dump(
             payload,
